@@ -17,6 +17,30 @@ javascript:(function(){
         Toastify({text,duration,gravity:"bottom",position:"center",style:{background:"#000"}}).showToast();
     }
 
+    // ===== CRÉDITOS =====
+    function mostrarCreditos(){
+        if(typeof Toastify==='undefined'){
+            sendToast("💳 Carregando créditos...", 2000);
+            return;
+        }
+        Toastify({
+            text: "✨ *CRÉDITOS DO SCRIPT* ✨\n\n👨‍💻 Dev: Mano Rick\n🌐 Servidor: discord.gg/2Hzv9FAjzm\n📦 Versão: 1.0\n💡 Obrigado por usar!",
+            duration: 6000,
+            gravity: "top",
+            position: "center",
+            style: {
+                background: "linear-gradient(90deg, #4b6cb7, #182848)",
+                color: "#fff",
+                fontWeight: "bold",
+                fontSize: "16px",
+                padding: "15px 25px",
+                borderRadius: "12px",
+                textAlign: "center",
+                boxShadow: "0 8px 30px rgba(0,0,0,0.3)"
+            }
+        }).showToast();
+    }
+
     // ===== DIGITADOR TURBO =====
     function iniciarDigitador(){
         sendToast("✍️ Toque no campo para digitar o texto",3000);
@@ -72,7 +96,6 @@ javascript:(function(){
         titulo.textContent="PAINEL CELULAR";
         Object.assign(titulo.style,{fontSize:'20px',fontWeight:'bold',marginBottom:'15px'});
 
-        // Botões principais
         const botoes=document.createElement('div');
         Object.assign(botoes.style,{display:'flex',flexDirection:'column',gap:'10px',alignItems:'center'});
 
@@ -107,6 +130,7 @@ javascript:(function(){
                 sendToast(marcada?'✅ Resposta marcada!':'❌ Nenhuma correspondente encontrada.',2000);
             });
         });
+        criarBotao('💳 Créditos', mostrarCreditos);
         criarBotao('❌ Fechar Menu',()=>{fundo.remove();criarBotaoFlutuante();});
 
         janela.append(titulo,botoes);
