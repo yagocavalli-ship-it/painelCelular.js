@@ -24,29 +24,37 @@ javascript:(function(){
         }).showToast();
     }
 
-    // ===== CRÉDITOS AVANÇADOS =====
+    // ===== CRÉDITOS FIXO =====
+    let creditoAberto=false;
     function mostrarCreditos(){
-        let duracao=6; // segundos
+        if(creditoAberto) return; // evita múltiplos toasts
+        creditoAberto=true;
+        const duracao=6; // segundos
+        const toastDiv=document.createElement('div');
+        toastDiv.innerHTML=`✨ <b>CRÉDITOS DO SCRIPT</b> ✨<br><br>
+        👨‍💻 Dev: Mano Rick<br>
+        🌐 Servidor: <a href='https://discord.gg/2Hzv9FAjzm' target='_blank' style='color:#FFD700;text-decoration:underline;'>discord.gg/2Hzv9FAjzm</a><br>
+        📦 Versão: 2.0<br>
+        ⏱ Desaparece em <span id='contador-toast'>${duracao}</span>s`;
+        sendToast({text:toastDiv.innerHTML,duration:duracao*1000,gravity:"top",position:"center",style:{
+            background:"linear-gradient(90deg, #4b6cb7, #182848)",
+            color:"#fff",
+            fontWeight:"bold",
+            fontSize:"16px",
+            padding:"15px 25px",
+            borderRadius:"12px",
+            textAlign:"center",
+            boxShadow:"0 8px 30px rgba(0,0,0,0.3)"
+        },html:true});
         let contador=duracao;
-        const intervalo=setInterval(()=>{
-            sendToast({
-                text:`✨ *CRÉDITOS DO SCRIPT* ✨\n\n👨‍💻 Dev: Mano Rick\n🌐 Servidor: <a href='https://discord.gg/2Hzv9FAjzm' target='_blank' style='color:#FFD700;text-decoration:underline;'>discord.gg/2Hzv9FAjzm</a>\n📦 Versão: 2.0\n⏱ Duração: ${contador--}s`,
-                duration:1000,
-                gravity:"top",
-                position:"center",
-                style:{
-                    background:"linear-gradient(90deg, #4b6cb7, #182848)",
-                    color:"#fff",
-                    fontWeight:"bold",
-                    fontSize:"16px",
-                    padding:"15px 25px",
-                    borderRadius:"12px",
-                    textAlign:"center",
-                    boxShadow:"0 8px 30px rgba(0,0,0,0.3)"
-                },
-                html:true
-            });
-            if(contador<0) clearInterval(intervalo);
+        const interval=setInterval(()=>{
+            contador--;
+            const span=document.querySelector("#contador-toast");
+            if(span) span.textContent=contador;
+            if(contador<=0) {
+                clearInterval(interval);
+                creditoAberto=false;
+            }
         },1000);
     }
 
@@ -64,7 +72,12 @@ javascript:(function(){
             }
             const texto=prompt("📋 Cole ou digite o texto:");
             if(!texto){criarBotaoFlutuante();return;}
-            const velocidade=parseInt(prompt("⚡ Velocidade de digitação (ms por caractere, padrão 40):")||40);
+
+            // Opções de velocidade
+            const velocidadeOpcao=prompt("⚡ Velocidade: 1-Normal, 2-Rápido, 3-Super rápido","1");
+            let velocidade=40;
+            if(velocidadeOpcao==='2') velocidade=20;
+            else if(velocidadeOpcao==='3') velocidade=5;
 
             el.focus();
             let i=0;
@@ -103,37 +116,19 @@ javascript:(function(){
         document.addEventListener('click',handler,true);
     }
 
-    // ===== DARK MODE =====
-    let darkMode=false;
-    function toggleDarkMode(){
-        darkMode=!darkMode;
-        if(darkMode){
-            const style=document.createElement('style');
-            style.id='painel-darkmode';
-            style.innerHTML=`html, body {background:#121212 !important; color:#eee !important;} a {color:#FFD700 !important;}`;
-            document.head.appendChild(style);
-            sendToast({text:"🌙 Dark mode ativado!",duration:2000});
-        } else {
-            const s=document.getElementById('painel-darkmode');
-            if(s) s.remove();
-            sendToast({text:"☀️ Dark mode desativado!",duration:2000});
-        }
-    }
-
-    // ===== CRIAR MENU MODERNO =====
+    // ===== CRIAR MENU APRIMORADO =====
     let fundo,janela;
     function criarMenu(){
         fundo=document.createElement('div');
         Object.assign(fundo.style,{
             position:'fixed',top:0,left:0,width:'100%',height:'100%',
             backgroundColor:'rgba(0,0,0,0.85)',zIndex:999999,
-            display:'flex',alignItems:'center',justifyContent:'center',
-            animation:'fadeIn 0.3s'
+            display:'flex',alignItems:'center',justifyContent:'center'
         });
 
         janela=document.createElement('div');
         Object.assign(janela.style,{
-            background:'rgba(0,0,0,0.9)',
+            background:'rgba(0,0,0,0.95)',
             backdropFilter:'blur(12px)',
             borderRadius:'15px',
             padding:'25px',
@@ -142,11 +137,15 @@ javascript:(function(){
             textAlign:'center',
             color:'#fff',
             boxShadow:'0 10px 40px rgba(0,0,0,0.4)',
-            animation:'slideDown 0.3s'
+            transform:'translateY(-30px)',
+            opacity:0,
+            transition:'all 0.4s ease'
         });
 
+        setTimeout(()=>{janela.style.transform='translateY(0)';janela.style.opacity=1;},10);
+
         const titulo=document.createElement('div');
-        titulo.textContent="PAINEL CELULAR v2.0";
+        titulo.textContent="PAINEL CELULAR v2.1";
         Object.assign(titulo.style,{fontSize:'22px',fontWeight:'bold',marginBottom:'20px',color:'#FFD700'});
 
         const botoes=document.createElement('div');
@@ -196,7 +195,6 @@ javascript:(function(){
             });
         },'#e67e22');
         criarBotao('💳 Créditos', mostrarCreditos,'#9b59b6');
-        criarBotao('🌙 Dark Mode', toggleDarkMode,'#34495e');
         criarBotao('❌ Fechar Menu',()=>{fundo.remove();criarBotaoFlutuante();},'#c0392b');
 
         janela.append(titulo,botoes);
@@ -239,28 +237,4 @@ javascript:(function(){
             document.addEventListener(e.touches?'touchend':'mouseup',endDrag);
         }
         function handleDrag(e){
-            const t = e.touches ? e.touches[0] : e;
-            const dx=t.clientX-startX,dy=t.clientY-startY;
-            if(!isDragging&&Math.sqrt(dx*dx+dy*dy)>5) isDragging=true;
-            if(isDragging){b.style.left=`${initialX+dx}px`; b.style.top=`${initialY+dy}px`;}
-        }
-        function endDrag(e){
-            if(!isDragging){b.remove(); criarMenu();}
-            else{posX=b.style.left; posY=b.style.top; localStorage.setItem("posX",posX); localStorage.setItem("posY",posY);}
-            document.removeEventListener(e.changedTouches?'touchmove':'mousemove',handleDrag);
-            document.removeEventListener(e.changedTouches?'touchend':'mouseup',endDrag);
-        }
-    }
-
-    // ===== INICIAR =====
-    criarBotaoFlutuante();
-
-    // ===== ANIMAÇÕES =====
-    const styleAnim=document.createElement('style');
-    styleAnim.innerHTML=`
-        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-        @keyframes slideDown{from{transform:translateY(-50px);opacity:0}to{transform:translateY(0);opacity:1}}
-    `;
-    document.head.appendChild(styleAnim);
-
-})();
+            const t = e.touches ? e.touches
