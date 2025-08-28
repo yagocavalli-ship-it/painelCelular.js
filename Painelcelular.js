@@ -1,265 +1,801 @@
-javascript:(function(){
-    // ===== TOAST NOTIFICATIONS =====
-    function sendToast({text,duration=3000,gravity="bottom",position="center",style={},html=false}){
-        if(typeof Toastify==='undefined'){
-            const link=document.createElement('link');
-            link.rel='stylesheet';
-            link.href='https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css';
-            document.head.appendChild(link);
+// ===== [SISTEMA DE TOAST NOTIFICATIONS] ===== //
+function sendToast(text, duration = 5000, gravity = 'bottom') {
+    // Verificar se o Toastify está disponível, se não, carregar dinamicamente
+    if (typeof Toastify === 'undefined') {
+        loadToastify();
+        // Tentar novamente após um breve delay
+        setTimeout(() => sendToast(text, duration, gravity), 300);
+        return;
+    }
+    
+    Toastify({
+        text,
+        duration,
+        gravity,
+        position: "center",
+        stopOnFocus: true,
+        style: { background: "#000000" }
+    }).showToast();
+}
 
-            const script=document.createElement('script');
-            script.src='https://cdn.jsdelivr.net/npm/toastify-js';
-            document.head.appendChild(script);
+function loadToastify() {
+    // Verificar se já está carregado
+    if (typeof Toastify !== 'undefined') return;
+    
+    // Carregar CSS do Toastify
+    const cssLink = document.createElement('link');
+    cssLink.rel = 'stylesheet';
+    cssLink.href = 'https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css';
+    document.head.appendChild(cssLink);
+    
+    // Carregar JS do Toastify
+    const jsScript = document.createElement('script');
+    jsScript.src = 'https://cdn.jsdelivr.net/npm/toastify-js';
+    document.head.appendChild(jsScript);
+}
 
-            setTimeout(()=>sendToast({text,duration,gravity,position,style,html}),500);
-            return;
+function showWelcomeToasts() {
+    sendToast("iniciando painel");
+    
+    setTimeout(() => {
+        sendToast("puxando dados", 2500);
+    }, 1000);
+    
+    setTimeout(() => {
+        sendToast("carregado!", 2500);
+    }, 1000);
+}
+
+// Carregar Toastify quando o script for executado
+loadToastify();
+
+// ===== [SEU CÓDIGO ORIGINAL A PARTIR DAQUI] ===== //
+(function(){
+    // Mostrar toasts de boas-vindas após um breve delay
+    setTimeout(showWelcomeToasts, 500);
+    
+    let fundo, janela, nome, relogio;
+    let senhaLiberada = false;
+    let abaAtiva = 'textos';
+    let posX = localStorage.getItem("dhonatanX") || "20px";
+    let posY = localStorage.getItem("dhonatanY") || "20px";
+    let corBotao = localStorage.getItem("corBotaoDhonatan") || "#0f0f0f";
+    
+    // Estilo moderno para todos os botões
+    const aplicarEstiloBotao = (elemento, gradiente = false) => {
+        Object.assign(elemento.style, {
+            padding: '10px 15px',
+            background: gradiente ? 'linear-gradient(135deg, #8A2BE2, #4B0082)' : '#222',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '30px',
+            cursor: 'pointer',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+            fontWeight: 'bold',
+            transition: 'all 0.3s ease',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '14px',
+            outline: 'none',
+            userSelect: 'none',
+            margin: '8px 0'
+        });
+    };
+
+    // Estilo para elementos de texto
+    const aplicarEstiloTexto = (elemento, tamanho = '18px') => {
+        Object.assign(elemento.style, {
+            color: '#fff',
+            fontSize: tamanho,
+            fontWeight: 'bold',
+            textAlign: 'center',
+            margin: '10px 0',
+            userSelect: 'none'
+        });
+    };
+
+    // Estilo para container
+    const aplicarEstiloContainer = (elemento) => {
+        Object.assign(elemento.style, {
+            background: 'rgba(0, 0, 0, 0.85)',
+            backdropFilter: 'blur(10px)',
+            borderRadius: '15px',
+            padding: '20px',
+            boxShadow: '0 8px 30px rgba(0,0,0,0.3)',
+            border: '1px solid rgba(255,255,255,0.1)',
+            maxWidth: '350px',
+            width: '90%',
+            textAlign: 'center'
+        });
+    };
+
+    const mostrarInfoDono = () => {
+        // Fecha o menu atual antes de abrir o novo elemento
+        if (fundo) fundo.remove();
+        
+        const container = document.createElement('div');
+        aplicarEstiloContainer(container);
+        // Garante que o elemento apareça acima de tudo
+        container.style.zIndex = '1000001';
+        container.style.position = 'fixed';
+        container.style.top = '50%';
+        container.style.left = '50%';
+        container.style.transform = 'translate(-50%, -50%)';
+        
+        const titulo = document.createElement('div');
+        titulo.textContent = '👑';
+        aplicarEstiloTexto(titulo, '20px');
+        
+        const insta = document.createElement('div');
+        insta.textContent = 'VERSÃO 1.1';
+        aplicarEstiloTexto(insta);
+        
+        const info = document.createElement('div');
+        info.textContent = '💻 Mod exclusivo e protegido, feito para poupar seu tempo';
+        aplicarEstiloTexto(info);
+        
+        const btnFechar = document.createElement('button');
+        btnFechar.textContent = 'Fechar';
+        aplicarEstiloBotao(btnFechar, true);
+        btnFechar.onclick = () => {
+            container.remove();
+            criarMenu();
+        };
+        
+        container.append(titulo, insta, info, btnFechar);
+        document.body.appendChild(container);
+    };
+
+    const trocarCorBotao = () => {
+        // Fecha o menu atual antes de abrir o novo elemento
+        if (fundo) fundo.remove();
+        
+        let novaCorTemp = corBotao;
+
+        const container = document.createElement('div');
+        aplicarEstiloContainer(container);
+        // Garante que o elemento apareça acima de tudo
+        container.style.zIndex = '1000001';
+        container.style.position = 'fixed';
+        container.style.top = '50%';
+        container.style.left = '50%';
+        container.style.transform = 'translate(-50%, -50%)';
+        
+        const titulo = document.createElement('div');
+        titulo.textContent = '🎨 Escolha a nova cor do botão flutuante';
+        aplicarEstiloTexto(titulo, '18px');
+
+        const seletor = document.createElement("input");
+        seletor.type = "color";
+        seletor.value = corBotao;
+        Object.assign(seletor.style, {
+            width: "100px",
+            height: "100px",
+            border: "none",
+            background: "transparent",
+            cursor: "pointer",
+            margin: '15px 0'
+        });
+
+        // Atualizar a cor temporária quando o seletor muda
+        seletor.addEventListener("input", (e) => {
+            novaCorTemp = e.target.value;
+        });
+
+        const btnContainer = document.createElement('div');
+        Object.assign(btnContainer.style, {
+            display: 'flex',
+            justifyContent: 'center',
+            gap: '10px',
+            marginTop: '15px'
+        });
+
+        const btnAplicar = document.createElement('button');
+        btnAplicar.textContent = '✅ Aplicar';
+        aplicarEstiloBotao(btnAplicar, true);
+        btnAplicar.onclick = () => {
+            if (!novaCorTemp || novaCorTemp === corBotao) return;
+            corBotao = novaCorTemp;
+            localStorage.setItem("corBotaoDhonatan", corBotao);
+            document.querySelectorAll("#dhonatanBotao").forEach(btn => {
+                btn.style.background = corBotao;
+            });
+            container.remove();
+            
+            // Adicionar feedback visual usando toast
+            sendToast('✅ Cor alterada com sucesso!', 2000);
+            setTimeout(() => criarMenu(), 2000);
+        };
+
+        const btnCancelar = document.createElement('button');
+        btnCancelar.textContent = '❌ Cancelar';
+        aplicarEstiloBotao(btnCancelar);
+        btnCancelar.onclick = () => {
+            container.remove();
+            criarMenu();
+        };
+        
+        btnContainer.append(btnAplicar, btnCancelar);
+        container.append(titulo, seletor, btnContainer);
+        document.body.appendChild(container);
+    };
+
+    const coletarPerguntaEAlternativas = () => {
+        const perguntaEl = document.querySelector('.question-text, .question-container, [data-qa*="question"]');
+        const pergunta = perguntaEl ? perguntaEl.innerText.trim() :
+            (document.body.innerText.split('\n').find(t => t.includes('?') && t.length < 200) || '').trim();
+        const alternativasEl = Array.from(document.querySelectorAll('[role="option"], .options div, .choice, .answer-text, label, span, p'));
+        const alternativasFiltradas = alternativasEl.map(el => el.innerText.trim()).filter(txt =>
+            txt.length > 20 && txt.length < 400 && !txt.includes('?') && !txt.toLowerCase().includes(pergunta.toLowerCase())
+        );
+        const letras = ['a', 'b', 'c', 'd', 'e', 'f'];
+        const alternativas = alternativasFiltradas.map((txt, i) => `${letras[i]}) ${txt}`).join('\n');
+        return { pergunta, alternativas };
+    };
+
+    // Função modificada para carregar o script do GitHub
+    const encontrarRespostaColar = () => {
+        sendToast('⏳ Carregando script...', 3000);
+
+        const scriptURL = "https://raw.githubusercontent.com/auxpainel/2050/refs/heads/main/coletarperguntaeresposta.js?" + Date.now();
+
+        fetch(scriptURL)
+            .then(response => {
+                if (!response.ok) throw new Error('Falha ao carregar o script');
+                return response.text();
+            })
+            .then(scriptContent => {
+                const script = document.createElement('script');
+                script.textContent = scriptContent;
+                document.head.appendChild(script);
+                sendToast('✅ Script carregado com sucesso!', 3000);
+            })
+            .catch(error => {
+                console.error('Erro ao carregar script:', error);
+                sendToast('❌ Erro ao carregar o script. Verifique o console.', 3000);
+            });
+    };
+
+    const encontrarRespostaDigitar = () => {
+        const pergunta = prompt("Digite a pergunta:");
+        if (!pergunta) return;
+        const promptFinal = `Responda de forma direta e clara sem ponto final: ${pergunta}`;
+        window.open(`https://www.perplexity.ai/search?q=${encodeURIComponent(promptFinal)}`, "_blank");
+    };
+
+    const marcarResposta = (resposta) => {
+        resposta = resposta.trim().replace(/\.+$/, '').toLowerCase();
+        const alternativas = document.querySelectorAll('[role="option"], .options div, .choice, .answer-text, label, span, p');
+        let marcada = false;
+        alternativas.forEach(el => {
+            const txt = el.innerText.trim().toLowerCase();
+            if (txt.includes(resposta)) {
+                el.style.backgroundColor = '#00ff00';
+                el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                marcada = true;
+            }
+        });
+        
+        if (marcada) {
+            sendToast('✅ Resposta marcada!', 2000);
+        } else {
+            sendToast('❌ Nenhuma correspondente encontrada.', 2000);
         }
-        Toastify({
-            text,
-            duration,
-            gravity,
-            position,
-            style,
-            escapeMarkup: !html
-        }).showToast();
-    }
+    };
 
-    // ===== REDAHACK SCREEN =====
-    function mostrarRedaHack(){
-        const overlay=document.createElement('div');
-        Object.assign(overlay.style,{
-            position:'fixed',top:0,left:0,width:'100%',height:'100%',
-            backgroundColor:'#000',color:'#FFD700',display:'flex',
-            alignItems:'center',justifyContent:'center',
-            fontSize:'60px',fontWeight:'bold',
-            zIndex:9999999,textAlign:'center',
-            animation:'fadeOutOverlay 4s forwards'
-        });
-        overlay.innerHTML="REDAHACK";
-        document.body.appendChild(overlay);
+    const iniciarMod = () => {
+        sendToast("✍️ Toque no campo onde deseja digitar o texto.", 3000);
+        const handler = (e) => {
+            e.preventDefault();
+            document.removeEventListener('click', handler, true);
+            const el = e.target;
+            if (!(el.isContentEditable || el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) {
+                sendToast("❌ Esse não é um campo válido.", 2000);
+                criarBotaoFlutuante();
+                return;
+            }
+            const texto = prompt("📋 Cole ou digite o texto:");
+            if (!texto) return criarBotaoFlutuante();
 
-        const style=document.createElement('style');
-        style.innerHTML=`@keyframes fadeOutOverlay{0%{opacity:1}80%{opacity:1}100%{opacity:0;display:none}}`;
-        document.head.appendChild(style);
-    }
-
-    // ===== CRÉDITOS FIXO =====
-    let creditoAberto=false;
-    function mostrarCreditos(){
-        if(creditoAberto) return;
-        creditoAberto=true;
-        sendToast({
-            text:`✨ <b>CRÉDITOS DO SCRIPT</b> ✨<br>👨‍💻 Dev: Mano Rick<br>🌐 Servidor: <a href='https://discord.gg/2Hzv9FAjzm' target='_blank' style='color:#FFD700;text-decoration:underline;'>discord.gg/2Hzv9FAjzm</a><br>📦 Versão: 2.0`,
-            duration:6000,
-            gravity:"top",
-            position:"center",
-            style:{
-                background:"linear-gradient(90deg, #4b6cb7, #182848)",
-                color:"#fff",
-                fontWeight:"bold",
-                fontSize:"16px",
-                padding:"15px 25px",
-                borderRadius:"12px",
-                textAlign:"center",
-                boxShadow:"0 8px 30px rgba(0,0,0,0.3)"
-            },
-            html:true
-        });
-        setTimeout(()=>{creditoAberto=false;},6000);
-    }
-
-    // ===== DARK MODE =====
-    function ativarDarkMode(){
-        const darkStyle=document.createElement('style');
-        darkStyle.id='darkModeReda';
-        darkStyle.innerHTML=`html,body,*{background-color:#121212 !important;color:#fff !important;border-color:#333 !important}a{color:#FFD700 !important}`;
-        document.head.appendChild(darkStyle);
-        sendToast({text:"🌙 Dark Mode ativado!",duration:2000});
-    }
-
-    // ===== DIGITADOR TURBO BONITO =====
-    function iniciarDigitador(){
-        const modal=document.createElement('div');
-        Object.assign(modal.style,{
-            position:'fixed',top:'50%',left:'50%',
-            transform:'translate(-50%,-50%)',background:'#222',
-            padding:'20px',borderRadius:'15px',color:'#fff',zIndex:99999999,
-            display:'flex',flexDirection:'column',gap:'10px',alignItems:'center',
-            boxShadow:'0 10px 30px rgba(0,0,0,0.5)'
-        });
-
-        const title=document.createElement('div');
-        title.textContent="✍️ Digitador Turbo";
-        Object.assign(title.style,{fontSize:'20px',fontWeight:'bold',marginBottom:'10px',color:'#FFD700'});
-        modal.appendChild(title);
-
-        const textarea=document.createElement('textarea');
-        textarea.placeholder="Cole ou digite seu texto aqui...";
-        Object.assign(textarea.style,{width:'300px',height:'100px',borderRadius:'10px',padding:'10px',fontSize:'16px'});
-        modal.appendChild(textarea);
-
-        const speedDiv=document.createElement('div');
-        speedDiv.style.display='flex';
-        speedDiv.style.gap='10px';
-        ['Normal','Rápido','Super Rápido'].forEach((s,i)=>{
-            const btn=document.createElement('button');
-            btn.textContent=s;
-            Object.assign(btn.style,{
-                padding:'8px 12px',borderRadius:'10px',cursor:'pointer',border:'none',fontWeight:'bold'
+            el.focus();
+            let i = 0;
+            const progresso = document.createElement('div');
+            Object.assign(progresso.style, {
+                position: 'fixed', top: '50%', left: '50%',
+                transform: 'translate(-50%, -50%)',
+                background: 'rgba(0,0,0,0.8)', color: '#fff',
+                padding: '10px 20px', borderRadius: '8px',
+                zIndex: 9999999, fontSize: '20px'
             });
-            btn.onclick=()=>startTyping(textarea.value,[40,20,5][i]);
-            speedDiv.appendChild(btn);
-        });
-        modal.appendChild(speedDiv);
+            document.body.append(progresso);
 
-        function startTyping(text,vel){
-            if(!text)return;
-            document.body.removeChild(modal);
-            const el=document.activeElement;
-            if(!(el.isContentEditable||el.tagName==='INPUT'||el.tagName==='TEXTAREA')){sendToast({text:"❌ Clique em um campo para digitar!",duration:2000});return;}
-
-            let i=0;
-            const progresso=document.createElement('div');
-            Object.assign(progresso.style,{
-                position:'fixed',top:'50%',left:'50%',
-                transform:'translate(-50%,-50%)',
-                background:'rgba(0,0,0,0.85)',
-                color:'#fff',padding:'12px 22px',
-                borderRadius:'10px',zIndex:9999999,fontSize:'18px',fontWeight:'bold',
-                textAlign:'center',boxShadow:'0 8px 20px rgba(0,0,0,0.3)'
-            });
-            document.body.appendChild(progresso);
-
-            const interval=setInterval(()=>{
-                if(i<text.length){
-                    const c=text[i++];
-                    if(el.isContentEditable) el.innerText+=c;
-                    else el.value+=c;
-                    progresso.textContent=`⌛ ${Math.round(i/text.length*100)}%`;
-                    el.dispatchEvent(new Event('input',{bubbles:true}));
-                }else{
-                    clearInterval(interval);
+            const intervalo = setInterval(() => {
+                if (i < texto.length) {
+                    const c = texto[i++];
+                    document.execCommand('insertText', false, c);
+                    progresso.textContent = `${Math.round(i / texto.length * 100)}%`;
+                } else {
+                    clearInterval(intervalo);
                     progresso.remove();
                     el.blur();
-                    sendToast({text:"✅ Texto digitado com sucesso!",duration:2000});
-                    criarBotaoFlutuante();
+                    setTimeout(() => {
+                        el.dispatchEvent(new Event('input', { bubbles: true }));
+                        el.dispatchEvent(new Event('change', { bubbles: true }));
+                        sendToast("✅ Texto digitado com sucesso!", 3000);
+                        setTimeout(() => criarBotaoFlutuante(), 3000);
+                    }, 100);
                 }
-            },vel);
-        }
+            }, 40);
+        };
+        document.addEventListener('click', handler, true);
+    };
 
-        document.body.appendChild(modal);
-    }
+    const criarTextoComTema = () => {
+        const tema = prompt("Qual tema deseja?");
+        if (!tema) return;
+        const palavras = prompt("Número mínimo de palavras?");
+        if (!palavras) return;
+        const promptFinal = `Crie um texto com o tema "${tema}" com no mínimo ${palavras} palavras. Seja claro e criativo.`;
+        const url = `https://www.perplexity.ai/search?q=${encodeURIComponent(promptFinal)}`;
+        window.open(url, "_blank");
+    };
 
-    // ===== CRIAR MENU FUNCIONAL =====
-    let fundo,janela;
-    function criarMenu(){
-        fundo=document.createElement('div');
-        Object.assign(fundo.style,{
-            position:'fixed',top:0,left:0,width:'100%',height:'100%',
-            backgroundColor:'rgba(0,0,0,0.85)',zIndex:999999,
-            display:'flex',alignItems:'center',justifyContent:'center'
+    const abrirReescritor = () => {
+        window.open(`https://www.reescrevertexto.net`, "_blank");
+    };
+
+    criarAbas = () => {
+        const botoes = {
+            scripts: [
+                {
+                    nome: 'Ingles Parana',
+                    func: () => window.open('https://speakify.cupiditys.lol', '_blank')
+                },
+                {
+                    nome: 'Khan Academy',
+                    func: () => {
+                        const scriptURL = "https://raw.githubusercontent.com/auxpainel/2050/main/script.js?" + Date.now();
+                        fetch(scriptURL)
+                            .then(response => response.text())
+                            .then(scriptContent => {
+                                const script = document.createElement('script');
+                                script.textContent = scriptContent;
+                                document.head.appendChild(script);
+                                sendToast('✅ Script Khan Academy carregado!', 3000);
+                            })
+                            .catch(error => {
+                                console.error('Erro ao carregar script:', error);
+                                sendToast('❌ Erro ao carregar script. Verifique o console.', 3000);
+                            });
+                    }
+                }
+            ],
+            textos: [
+                { nome: 'Digitador v1', func: () => { fundo.remove(); iniciarMod(); } },
+                {
+                    nome: 'Digitador v2',
+                    func: () => {
+                        fundo.remove();
+                        criarBotaoFlutuante();
+                        const scriptURL = "https://raw.githubusercontent.com/auxpainel/2050/main/autodigitador.js?" + Date.now();
+                        fetch(scriptURL)
+                            .then(response => response.text())
+                            .then(scriptContent => {
+                                const script = document.createElement('script');
+                                script.textContent = scriptContent;
+                                document.head.appendChild(script);
+                                sendToast('Nada Carregado!', 3000);
+                            })
+                            .catch(error => {
+                                console.error('Erro ao carregar Kahoot script:', error);
+                                sendToast('❌ Erro ao carregar o Kahoot script. Verifique o console.', 3000);
+                            });
+                    }
+                },
+                { nome: '📄 Criar Texto com Tema', func: criarTextoComTema },
+                { nome: '🔁 Reescrever Texto', func: abrirReescritor }
+            ],
+            respostas: [
+                { nome: '📡 Encontrar Resposta', func: encontrarRespostaColar },
+                { nome: '✍️ Encontrar Resposta (Digitar)', func: encontrarRespostaDigitar },
+                { nome: '🎯 Marcar Resposta (Colar)', func: () => navigator.clipboard.readText().then(r => marcarResposta(r)) },
+                { nome: '✍️ Marcar Resposta (Digitar)', func: () => {
+                    const r = prompt("Digite a resposta:");
+                    if (r) marcarResposta(r);
+                }}
+            ],
+            outros: [
+                { 
+                    nome: 'Extensão libera bloqueio Wifi', 
+                    func: () => window.open('https://chromewebstore.google.com/detail/x-vpn-free-vpn-chrome-ext/flaeifplnkmoagonpbjmedjcadegiigl', '_blank') 
+                },
+                { 
+                    nome: '🎮 Jogo da Velha',
+                    func: () => {
+                        const scriptURL = "https://raw.githubusercontent.com/auxpainel/2050/main/jogodavelha.js?" + Date.now();
+                        fetch(scriptURL)
+                            .then(response => response.text())
+                            .then(scriptContent => {
+                                const script = document.createElement('script');
+                                script.textContent = scriptContent;
+                                document.head.appendChild(script);
+                                sendToast('Carregado!', 3000);
+                            })
+                            .catch(error => {
+                                console.error('Erro ao carregar Kahoot script:', error);
+                                sendToast('❌ Erro ao carregar o Kahoot script. Verifique o console.', 3000);
+                            });
+                    }
+                },
+            ],
+            config: [
+                { nome: 'ℹ️ Sobre o Mod', func: mostrarInfoDono },
+                { nome: '🎨 Cor do Botão Flutuante', func: trocarCorBotao },
+                { nome: '🔃 Resetar', func: () => { fundo.remove(); criarInterface(); } }
+            ]
+        };
+
+        const botoesAbas = document.createElement('div');
+        Object.assign(botoesAbas.style, {
+            display: 'flex',
+            justifyContent: 'center',
+            flexWrap: 'wrap',
+            gap: '5px',
+            marginBottom: '15px'
         });
 
-        janela=document.createElement('div');
-        Object.assign(janela.style,{
-            background:'rgba(0,0,0,0.95)',
-            backdropFilter:'blur(12px)',
-            borderRadius:'15px',
-            padding:'25px',
-            maxWidth:'90%',
-            width:'380px',
-            textAlign:'center',
-            color:'#fff',
-            boxShadow:'0 10px 40px rgba(0,0,0,0.4)',
-            transform:'translateY(0)',
-            opacity:1,
-            transition:'all 0.4s ease'
+        ['scripts', 'textos', 'respostas', 'outros', 'config'].forEach(id => {
+            const botaoAba = document.createElement('button');
+            botaoAba.textContent = id.toUpperCase();
+            aplicarEstiloBotao(botaoAba, abaAtiva === id);
+            botaoAba.onclick = () => {
+                abaAtiva = id;
+                fundo.remove();
+                criarMenu();
+            };
+            botoesAbas.appendChild(botaoAba);
         });
 
-        const titulo=document.createElement('div');
-        titulo.textContent="PAINEL CELULAR v3.0";
-        Object.assign(titulo.style,{fontSize:'22px',fontWeight:'bold',marginBottom:'20px',color:'#FFD700'});
+        janela.appendChild(botoesAbas);
 
-        const botoes=document.createElement('div');
-        Object.assign(botoes.style,{display:'flex',flexDirection:'column',gap:'12px',alignItems:'center'});
+        // Linha de separação entre abas e funções
+        const separador = document.createElement('hr');
+        Object.assign(separador.style, {
+            width: '100%',
+            border: '1px solid rgba(255,255,255,0.1)',
+            margin: '10px 0'
+        });
+        janela.appendChild(separador);
 
-        function criarBotao(texto,func,cor='#222'){
-            const b=document.createElement('button');
-            b.innerHTML=texto;
-            Object.assign(b.style,{
-                padding:'12px 20px',
-                background:cor,
-                color:'#fff',
-                border:'none',
-                borderRadius:'30px',
-                cursor:'pointer',
-                fontWeight:'bold',
-                width:'95%',
-                transition:'all 0.2s',
-                fontSize:'16px'
+        const containerBotoes = document.createElement('div');
+        Object.assign(containerBotoes.style, {
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '10px'
+        });
+
+        if (botoes[abaAtiva]) {
+            botoes[abaAtiva].forEach(b => {
+                const btn = document.createElement('button');
+                btn.textContent = b.nome;
+                aplicarEstiloBotao(btn);
+                btn.onclick = b.func;
+                containerBotoes.appendChild(btn);
             });
-            b.onmouseover=()=>b.style.transform='scale(1.05)';
-            b.onmouseleave=()=>b.style.transform='scale(1)';
-            b.onclick=func;
-            botoes.appendChild(b);
         }
 
-        criarBotao('✍️ Digitador Turbo',()=>{fundo.remove();iniciarDigitador();},'#1abc9c');
-        criarBotao('💻 Dark Mode',()=>{ativarDarkMode();},'#34495e');
-        criarBotao('💳 Créditos', mostrarCreditos,'#9b59b6');
-        criarBotao('❌ Fechar Menu',()=>{fundo.remove();criarBotaoFlutuante();},'#c0392b');
+        janela.appendChild(containerBotoes);
 
-        janela.append(titulo,botoes);
+        // Botões de ação no final
+        const botoesAcao = document.createElement('div');
+        Object.assign(botoesAcao.style, {
+            display: 'flex',
+            justifyContent: 'space-between',
+            gap: '10px',
+            marginTop: '15px',
+            width: '100%'
+        });
+
+        const btnEsconder = document.createElement('button');
+        btnEsconder.textContent = '👁️ Fechar Menu';
+        aplicarEstiloBotao(btnEsconder);
+        btnEsconder.onclick = () => {
+            fundo.remove();
+            const botaoFlutuante = document.getElementById('dhonatanBotao');
+            if (botaoFlutuante) botaoFlutuante.remove();
+        };
+
+        const btnFechar = document.createElement('button');
+        btnFechar.textContent = '❌ Minimizar Menu';
+        aplicarEstiloBotao(btnFechar);
+        btnFechar.onclick = () => {
+            fundo.remove();
+            criarBotaoFlutuante();
+        };
+
+        botoesAcao.append(btnEsconder, btnFechar);
+        janela.appendChild(botoesAcao);
+    };
+
+    const criarMenu = () => {
+        fundo = document.createElement('div');
+        Object.assign(fundo.style, {
+            position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+            backgroundColor: 'rgba(0,0,0,0.85)', zIndex: '999999',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+        });
+
+        janela = document.createElement('div');
+        aplicarEstiloContainer(janela);
+
+        const titulo = document.createElement('div');
+        titulo.textContent = 'PAINEL AUXÍLIO';
+        aplicarEstiloTexto(titulo, '20px');
+
+        let h = 0;
+        setInterval(() => {
+            titulo.style.color = `hsl(${h++ % 360},100%,60%)`;
+        }, 30);
+
+        relogio = document.createElement('div');
+        relogio.textContent = '🕒 ' + new Date().toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+        aplicarEstiloTexto(relogio, '16px');
+        setInterval(() => {
+            relogio.textContent = '🕒 ' + new Date().toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+        }, 1000);
+
+        janela.append(titulo, relogio);
+        criarAbas();
         fundo.append(janela);
         document.body.append(fundo);
-    }
+    };
 
-    // ===== BOTÃO FLUTUANTE =====
-    let posX=localStorage.getItem("posX")||"20px";
-    let posY=localStorage.getItem("posY")||"20px";
-    function criarBotaoFlutuante(){
-        const b=document.createElement('div');
-        b.textContent="Painel";
-        Object.assign(b.style,{
-            position:'fixed',left:posX,top:posY,
-            background:'#27ae60',padding:'10px 18px',
-            borderRadius:'25px',cursor:'grab',zIndex:999999,
-            fontWeight:'bold',color:'#fff',userSelect:'none',
-            transition:'all 0.2s',boxShadow:'0 6px 20px rgba(0,0,0,0.3)'
+    const criarInterface = () => {
+        fundo = document.createElement('div');
+        Object.assign(fundo.style, {
+            position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+            backgroundColor: 'rgba(0,0,0,0.85)', zIndex: '999999',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
         });
-        document.body.appendChild(b);
+        
+        janela = document.createElement('div');
+        aplicarEstiloContainer(janela);
 
-        let isDragging=false,startX,startY,initialX,initialY;
-        b.addEventListener('touchstart',startDrag,{passive:false});
-        b.addEventListener('mousedown',startDrag);
-        function startDrag(e){
-            const t = e.touches ? e.touches[0] : e;
-            startX=t.clientX; startY=t.clientY;
-            initialX=parseFloat(b.style.left); initialY=parseFloat(b.style.top);
-            isDragging=false;
-            document.addEventListener(e.touches?'touchmove':'mousemove',handleDrag,{passive:false});
-            document.addEventListener(e.touches?'touchend':'mouseup',endDrag);
-        }
-        function handleDrag(e){
-            const t = e.touches ? e.touches[0] : e;
-            const dx=t.clientX-startX,dy=t.clientY-startY;
-            if(!isDragging&&Math.sqrt(dx*dx+dy*dy)>5) isDragging=true;
-            if(isDragging){b.style.left=`${initialX+dx}px`; b.style.top=`${initialY+dy}px`;}
-        }
-        function endDrag(e){
-            if(!isDragging){b.remove(); criarMenu();}
-            else{posX=b.style.left; posY=b.style.top; localStorage.setItem("posX",posX); localStorage.setItem("posY",posY);}
-            document.removeEventListener(e.changedTouches?'touchmove':'mousemove',handleDrag);
-            document.removeEventListener(e.changedTouches?'touchend':'mouseup',endDrag);
-        }
-    }
+        // Container principal
+        nome = document.createElement('div');
+        Object.assign(nome.style, {
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '5px'
+        });
 
-    // ===== SCRIPT AUTOMÁTICO =====
-    mostrarRedaHack();
-    setTimeout(()=>sendToast({text:"🚀 Script executado com sucesso...",duration:2000,gravity:"bottom"}),500);
-    setTimeout(()=>sendToast({text:"⏳ Carregando...",duration:2000,gravity:"bottom"}),1500);
-    setTimeout(()=>sendToast({text:"✅ Script carregado com sucesso!\n💳 Créditos: Mano Rick",duration:3000,gravity:"bottom"}),3000);
+        // Texto SUPERIOR
+        const textoCima = document.createElement('div');
+        textoCima.textContent = 'Painel Funções';
+        aplicarEstiloTexto(textoCima, '20px');
 
-    // ===== INICIAR =====
+        // Texto INFERIOR
+        const textoBaixo = document.createElement('div');
+        textoBaixo.textContent = 'tudo para suas atividades de escola aqui!';
+        aplicarEstiloTexto(textoBaixo, '17px');
+
+        // Adiciona os textos ao container
+        nome.appendChild(textoCima);
+        nome.appendChild(textoBaixo);
+
+        // Mantém a animação de cores nos dois textos
+let hue = 0;
+setInterval(() => {
+    const corAtual = `hsl(${hue % 360}, 100%, 60%)`;
+    textoBaixo.style.color = corAtual; // só o texto inferior anima
+    hue++;
+}, 30);
+
+        const input = document.createElement('input');
+        Object.assign(input.style, {
+            padding: '12px',
+            width: '80%',
+            margin: '15px 0',
+            background: '#222',
+            color: '#fff',
+            border: '1px solid #444',
+            borderRadius: '30px',
+            textAlign: 'center',
+            fontSize: '16px'
+        });
+        input.type = 'password';
+        input.placeholder = 'Digite a senha';
+
+        const botao = document.createElement('button');
+        botao.textContent = 'Acessar';
+        aplicarEstiloBotao(botao, true);
+        
+        // ===== [BOTÃO ADQUIRIR SENHA - ADICIONE AQUI] ===== //
+    // Botão para adquirir senha
+    const btnAdquirirSenha = document.createElement('button');
+    btnAdquirirSenha.textContent = 'Canal No Youtube';
+    aplicarEstiloBotao(btnAdquirirSenha);
+    btnAdquirirSenha.style.background = 'linear-gradient(135deg, #c42b2b, #782b2b)';
+    btnAdquirirSenha.onclick = () => {
+        window.open('https://youtube.com/@mlkmau5960?si=K20r4A1J9cDFwi72', '_blank');
+    };
+
+    // Container para os botões
+    const botoesContainer = document.createElement('div');
+    Object.assign(botoesContainer.style, {
+        display: 'flex',
+        justifyContent: 'space-between',
+        gap: '10px',
+        width: '100%'
+    });
+
+    botoesContainer.append(botao, btnAdquirirSenha);
+    // ===== [FIM DO BOTÃO ADQUIRIR SENHA] ===== //
+
+        const erro = document.createElement('div');
+        erro.textContent = '❌ Senha incorreta. Se não tiver a senha procure um adm.';
+        Object.assign(erro.style, {
+            display: 'none', 
+            color: '#ff5555', 
+            marginTop: '15px',
+            fontSize: '14px'
+        });
+
+        // ===== [SISTEMA DE SENHAS REMOTO CORRIGIDO] ===== //
+        let senhasCarregadas = false;
+
+        const carregarSenhasRemotas = async () => {
+            try {
+                const response = await fetch('https://raw.githubusercontent.com/auxpainel/2050/main/senhas.js?' + Date.now());
+                if (!response.ok) throw new Error('Erro HTTP: ' + response.status);
+                
+                const scriptContent = await response.text();
+                const script = document.createElement('script');
+                script.textContent = scriptContent;
+                document.head.appendChild(script);
+                
+                senhasCarregadas = true;
+            } catch (error) {
+                console.error('Falha ao carregar senhas:', error);
+                // Fallback com senhas locais (case sensitive)
+                window.verificarSenha = function(senha) {
+                    const senhasBackup = [
+                        "admin",
+                        "Teste24",
+                        "adm",
+                        "tainara",
+                        "vitor",
+                        "pablo",
+                        "rafael"
+                    ];
+                    return senhasBackup.includes(senha);
+                };
+                senhasCarregadas = true;
+            }
+        };
+
+        // Carregar senhas ao iniciar
+        carregarSenhasRemotas();
+
+        // Verificação com espera do carregamento
+        botao.onclick = async () => {
+            // Se ainda não carregou, mostra aviso
+            if (!senhasCarregadas) {
+                sendToast('🔒 Carregando sistema de senhas...', 2000);
+                await carregarSenhasRemotas();
+            }
+
+            if (verificarSenha(input.value)) {
+                senhaLiberada = true;
+                fundo.remove();
+                sendToast("Bem vindo ao Painel de Funções! 👋", 3000);
+                criarMenu();
+            } else {
+                erro.style.display = 'block';
+            }
+        };
+        // ===== [FIM DO SISTEMA CORRIGIDO] ===== //
+
+        janela.append(nome, input, botoesContainer, erro);
+        fundo.append(janela);
+        document.body.append(fundo);
+    };
+
+    const criarBotaoFlutuante = () => {
+        const b = document.createElement('div');
+        b.id = "dhonatanBotao";
+        b.textContent = "Painel";
+        Object.assign(b.style, {
+            position: 'fixed',
+            left: posX,
+            top: posY,
+            background: corBotao,
+            padding: '12px 20px',
+            borderRadius: '30px',
+            cursor: 'grab',
+            zIndex: '999999',
+            fontWeight: 'bold',
+            userSelect: 'none',
+            color: '#fff',
+            boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+            transition: 'all 0.3s ease'
+        });
+
+        let isDragging = false;
+        let startX, startY;
+        let initialX, initialY;
+        let xOffset = 0, yOffset = 0;
+        const DRAG_THRESHOLD = 5;
+
+        b.addEventListener('mousedown', startDrag);
+        b.addEventListener('touchstart', startDrag, { passive: false });
+
+        function startDrag(e) {
+            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+            
+            startX = clientX;
+            startY = clientY;
+            initialX = clientX - (parseFloat(b.style.left) || 0);
+            initialY = clientY - (parseFloat(b.style.top) || 0);
+            
+            isDragging = false;
+            
+            document.addEventListener('mousemove', handleDragMove);
+            document.addEventListener('touchmove', handleDragMove, { passive: false });
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchend', endDrag);
+        }
+
+        function handleDragMove(e) {
+            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+            
+            const dx = clientX - startX;
+            const dy = clientY - startY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (!isDragging && distance > DRAG_THRESHOLD) {
+                isDragging = true;
+            }
+            
+            if (isDragging) {
+                const currentX = clientX - initialX;
+                const currentY = clientY - initialY;
+                
+                b.style.left = `${currentX}px`;
+                b.style.top = `${currentY}px`;
+                b.style.cursor = 'grabbing';
+            }
+        }
+
+        function endDrag() {
+            if (isDragging) {
+                posX = b.style.left;
+                posY = b.style.top;
+                localStorage.setItem("dhonatanX", posX);
+                localStorage.setItem("dhonatanY", posY);
+            } else {
+                // Se não estava arrastando, é um clique
+                b.remove();
+                senhaLiberada ? criarMenu() : criarInterface();
+            }
+            
+            b.style.cursor = 'grab';
+            isDragging = false;
+            
+            document.removeEventListener('mousemove', handleDragMove);
+            document.removeEventListener('touchmove', handleDragMove);
+            document.removeEventListener('mouseup', endDrag);
+            document.removeEventListener('touchend', endDrag);
+        }
+
+        document.body.append(b);
+    };
+
+    // Iniciar o botão flutuante
     criarBotaoFlutuante();
 })();
