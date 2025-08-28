@@ -24,6 +24,25 @@ javascript:(function(){
         }).showToast();
     }
 
+    // ===== REDAHACK SCREEN =====
+    function mostrarRedaHack(){
+        const overlay=document.createElement('div');
+        Object.assign(overlay.style,{
+            position:'fixed',top:0,left:0,width:'100%',height:'100%',
+            backgroundColor:'#000',color:'#FFD700',display:'flex',
+            alignItems:'center',justifyContent:'center',
+            fontSize:'60px',fontWeight:'bold',
+            zIndex:9999999,textAlign:'center',
+            animation:'fadeOutOverlay 4s forwards'
+        });
+        overlay.innerHTML="REDAHACK";
+        document.body.appendChild(overlay);
+
+        const style=document.createElement('style');
+        style.innerHTML=`@keyframes fadeOutOverlay{0%{opacity:1}80%{opacity:1}100%{opacity:0;display:none}}`;
+        document.head.appendChild(style);
+    }
+
     // ===== CRÉDITOS FIXO =====
     let creditoAberto=false;
     function mostrarCreditos(){
@@ -49,62 +68,86 @@ javascript:(function(){
         setTimeout(()=>{creditoAberto=false;},6000);
     }
 
-    // ===== DIGITADOR TURBO APRIMORADO =====
+    // ===== DARK MODE =====
+    function ativarDarkMode(){
+        const darkStyle=document.createElement('style');
+        darkStyle.id='darkModeReda';
+        darkStyle.innerHTML=`html,body,*{background-color:#121212 !important;color:#fff !important;border-color:#333 !important}a{color:#FFD700 !important}`;
+        document.head.appendChild(darkStyle);
+        sendToast({text:"🌙 Dark Mode ativado!",duration:2000});
+    }
+
+    // ===== DIGITADOR TURBO BONITO =====
     function iniciarDigitador(){
-        sendToast({text:"✍️ Toque no campo para digitar o texto",duration:3000});
-        const handler=(e)=>{
-            e.preventDefault();
-            document.removeEventListener('click',handler,true);
-            const el=e.target;
-            if(!(el.isContentEditable||el.tagName==='INPUT'||el.tagName==='TEXTAREA')){
-                sendToast({text:"❌ Esse não é um campo válido",duration:2000});
-                criarBotaoFlutuante();
-                return;
-            }
-            const texto=prompt("📋 Cole ou digite o texto:");
-            if(!texto){criarBotaoFlutuante();return;}
+        const modal=document.createElement('div');
+        Object.assign(modal.style,{
+            position:'fixed',top:'50%',left:'50%',
+            transform:'translate(-50%,-50%)',background:'#222',
+            padding:'20px',borderRadius:'15px',color:'#fff',zIndex:99999999,
+            display:'flex',flexDirection:'column',gap:'10px',alignItems:'center',
+            boxShadow:'0 10px 30px rgba(0,0,0,0.5)'
+        });
 
-            // Opções de velocidade
-            const velocidadeOpcao=prompt("⚡ Velocidade: 1-Normal, 2-Rápido, 3-Super rápido","1");
-            let velocidade=40;
-            if(velocidadeOpcao==='2') velocidade=20;
-            else if(velocidadeOpcao==='3') velocidade=5;
+        const title=document.createElement('div');
+        title.textContent="✍️ Digitador Turbo";
+        Object.assign(title.style,{fontSize:'20px',fontWeight:'bold',marginBottom:'10px',color:'#FFD700'});
+        modal.appendChild(title);
 
-            el.focus();
+        const textarea=document.createElement('textarea');
+        textarea.placeholder="Cole ou digite seu texto aqui...";
+        Object.assign(textarea.style,{width:'300px',height:'100px',borderRadius:'10px',padding:'10px',fontSize:'16px'});
+        modal.appendChild(textarea);
+
+        const speedDiv=document.createElement('div');
+        speedDiv.style.display='flex';
+        speedDiv.style.gap='10px';
+        ['Normal','Rápido','Super Rápido'].forEach((s,i)=>{
+            const btn=document.createElement('button');
+            btn.textContent=s;
+            Object.assign(btn.style,{
+                padding:'8px 12px',borderRadius:'10px',cursor:'pointer',border:'none',fontWeight:'bold'
+            });
+            btn.onclick=()=>startTyping(textarea.value,[40,20,5][i]);
+            speedDiv.appendChild(btn);
+        });
+        modal.appendChild(speedDiv);
+
+        function startTyping(text,vel){
+            if(!text)return;
+            document.body.removeChild(modal);
+            const el=document.activeElement;
+            if(!(el.isContentEditable||el.tagName==='INPUT'||el.tagName==='TEXTAREA')){sendToast({text:"❌ Clique em um campo para digitar!",duration:2000});return;}
+
             let i=0;
             const progresso=document.createElement('div');
             Object.assign(progresso.style,{
                 position:'fixed',top:'50%',left:'50%',
                 transform:'translate(-50%,-50%)',
                 background:'rgba(0,0,0,0.85)',
-                color:'#fff',
-                padding:'12px 22px',
-                borderRadius:'10px',
-                zIndex:9999999,
-                fontSize:'18px',
-                fontWeight:'bold',
-                textAlign:'center',
-                boxShadow:'0 8px 20px rgba(0,0,0,0.3)'
+                color:'#fff',padding:'12px 22px',
+                borderRadius:'10px',zIndex:9999999,fontSize:'18px',fontWeight:'bold',
+                textAlign:'center',boxShadow:'0 8px 20px rgba(0,0,0,0.3)'
             });
-            document.body.append(progresso);
+            document.body.appendChild(progresso);
 
-            const intervalo=setInterval(()=>{
-                if(i<texto.length){
-                    const c=texto[i++];
+            const interval=setInterval(()=>{
+                if(i<text.length){
+                    const c=text[i++];
                     if(el.isContentEditable) el.innerText+=c;
                     else el.value+=c;
-                    progresso.textContent=`⌛ ${Math.round(i/texto.length*100)}%`;
+                    progresso.textContent=`⌛ ${Math.round(i/text.length*100)}%`;
                     el.dispatchEvent(new Event('input',{bubbles:true}));
                 }else{
-                    clearInterval(intervalo);
+                    clearInterval(interval);
                     progresso.remove();
                     el.blur();
-                    sendToast({text:"✅ Texto digitado com sucesso!",duration:3000});
-                    setTimeout(()=>criarBotaoFlutuante(),500);
+                    sendToast({text:"✅ Texto digitado com sucesso!",duration:2000});
+                    criarBotaoFlutuante();
                 }
-            },velocidade);
-        };
-        document.addEventListener('click',handler,true);
+            },vel);
+        }
+
+        document.body.appendChild(modal);
     }
 
     // ===== CRIAR MENU FUNCIONAL =====
@@ -134,7 +177,7 @@ javascript:(function(){
         });
 
         const titulo=document.createElement('div');
-        titulo.textContent="PAINEL CELULAR v2.2";
+        titulo.textContent="PAINEL CELULAR v3.0";
         Object.assign(titulo.style,{fontSize:'22px',fontWeight:'bold',marginBottom:'20px',color:'#FFD700'});
 
         const botoes=document.createElement('div');
@@ -162,27 +205,7 @@ javascript:(function(){
         }
 
         criarBotao('✍️ Digitador Turbo',()=>{fundo.remove();iniciarDigitador();},'#1abc9c');
-        criarBotao('📄 Criar Texto com Tema',()=>{
-            const tema=prompt("Qual tema?");
-            if(!tema)return;
-            const tamanho=prompt("Tamanho do texto: curto, médio ou longo?")||'médio';
-            const url=`https://www.perplexity.ai/search?q=${encodeURIComponent(`Crie um texto com o tema "${tema}" com tamanho ${tamanho}`)}`;
-            window.open(url,'_blank');
-        },'#3498db');
-        criarBotao('🎯 Marcar Resposta (Colar)',()=>{
-            navigator.clipboard.readText().then(r=>{
-                const alternativas=document.querySelectorAll('[role="option"], .options div, .choice, .answer-text, label, span, p');
-                let marcada=false;
-                alternativas.forEach(el=>{
-                    if(el.innerText.toLowerCase().includes(r.toLowerCase())){
-                        el.style.backgroundColor='#0f0';
-                        el.scrollIntoView({behavior:'smooth',block:'center'});
-                        marcada=true;
-                    }
-                });
-                sendToast({text:marcada?'✅ Resposta marcada!':'❌ Nenhuma correspondente encontrada.',duration:2000});
-            });
-        },'#e67e22');
+        criarBotao('💻 Dark Mode',()=>{ativarDarkMode();},'#34495e');
         criarBotao('💳 Créditos', mostrarCreditos,'#9b59b6');
         criarBotao('❌ Fechar Menu',()=>{fundo.remove();criarBotaoFlutuante();},'#c0392b');
 
@@ -231,7 +254,8 @@ javascript:(function(){
         }
     }
 
-    // ===== SCRIPT NOTIFICATIONS AUTOMÁTICAS =====
+    // ===== SCRIPT AUTOMÁTICO =====
+    mostrarRedaHack();
     setTimeout(()=>sendToast({text:"🚀 Script executado com sucesso...",duration:2000,gravity:"bottom"}),500);
     setTimeout(()=>sendToast({text:"⏳ Carregando...",duration:2000,gravity:"bottom"}),1500);
     setTimeout(()=>sendToast({text:"✅ Script carregado com sucesso!\n💳 Créditos: Mano Rick",duration:3000,gravity:"bottom"}),3000);
