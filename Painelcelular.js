@@ -27,35 +27,26 @@ javascript:(function(){
     // ===== CRÉDITOS FIXO =====
     let creditoAberto=false;
     function mostrarCreditos(){
-        if(creditoAberto) return; // evita múltiplos toasts
+        if(creditoAberto) return;
         creditoAberto=true;
-        const duracao=6; // segundos
-        const toastDiv=document.createElement('div');
-        toastDiv.innerHTML=`✨ <b>CRÉDITOS DO SCRIPT</b> ✨<br><br>
-        👨‍💻 Dev: Mano Rick<br>
-        🌐 Servidor: <a href='https://discord.gg/2Hzv9FAjzm' target='_blank' style='color:#FFD700;text-decoration:underline;'>discord.gg/2Hzv9FAjzm</a><br>
-        📦 Versão: 2.0<br>
-        ⏱ Desaparece em <span id='contador-toast'>${duracao}</span>s`;
-        sendToast({text:toastDiv.innerHTML,duration:duracao*1000,gravity:"top",position:"center",style:{
-            background:"linear-gradient(90deg, #4b6cb7, #182848)",
-            color:"#fff",
-            fontWeight:"bold",
-            fontSize:"16px",
-            padding:"15px 25px",
-            borderRadius:"12px",
-            textAlign:"center",
-            boxShadow:"0 8px 30px rgba(0,0,0,0.3)"
-        },html:true});
-        let contador=duracao;
-        const interval=setInterval(()=>{
-            contador--;
-            const span=document.querySelector("#contador-toast");
-            if(span) span.textContent=contador;
-            if(contador<=0) {
-                clearInterval(interval);
-                creditoAberto=false;
-            }
-        },1000);
+        sendToast({
+            text:`✨ <b>CRÉDITOS DO SCRIPT</b> ✨<br>👨‍💻 Dev: Mano Rick<br>🌐 Servidor: <a href='https://discord.gg/2Hzv9FAjzm' target='_blank' style='color:#FFD700;text-decoration:underline;'>discord.gg/2Hzv9FAjzm</a><br>📦 Versão: 2.0`,
+            duration:6000,
+            gravity:"top",
+            position:"center",
+            style:{
+                background:"linear-gradient(90deg, #4b6cb7, #182848)",
+                color:"#fff",
+                fontWeight:"bold",
+                fontSize:"16px",
+                padding:"15px 25px",
+                borderRadius:"12px",
+                textAlign:"center",
+                boxShadow:"0 8px 30px rgba(0,0,0,0.3)"
+            },
+            html:true
+        });
+        setTimeout(()=>{creditoAberto=false;},6000);
     }
 
     // ===== DIGITADOR TURBO APRIMORADO =====
@@ -116,7 +107,7 @@ javascript:(function(){
         document.addEventListener('click',handler,true);
     }
 
-    // ===== CRIAR MENU APRIMORADO =====
+    // ===== CRIAR MENU FUNCIONAL =====
     let fundo,janela;
     function criarMenu(){
         fundo=document.createElement('div');
@@ -137,15 +128,13 @@ javascript:(function(){
             textAlign:'center',
             color:'#fff',
             boxShadow:'0 10px 40px rgba(0,0,0,0.4)',
-            transform:'translateY(-30px)',
-            opacity:0,
+            transform:'translateY(0)',
+            opacity:1,
             transition:'all 0.4s ease'
         });
 
-        setTimeout(()=>{janela.style.transform='translateY(0)';janela.style.opacity=1;},10);
-
         const titulo=document.createElement('div');
-        titulo.textContent="PAINEL CELULAR v2.1";
+        titulo.textContent="PAINEL CELULAR v2.2";
         Object.assign(titulo.style,{fontSize:'22px',fontWeight:'bold',marginBottom:'20px',color:'#FFD700'});
 
         const botoes=document.createElement('div');
@@ -202,26 +191,18 @@ javascript:(function(){
         document.body.append(fundo);
     }
 
-    // ===== BOTÃO FLUTUANTE APRIMORADO =====
+    // ===== BOTÃO FLUTUANTE =====
     let posX=localStorage.getItem("posX")||"20px";
     let posY=localStorage.getItem("posY")||"20px";
     function criarBotaoFlutuante(){
         const b=document.createElement('div');
         b.textContent="Painel";
         Object.assign(b.style,{
-            position:'fixed',
-            left:posX,
-            top:posY,
-            background:'#27ae60',
-            padding:'10px 18px',
-            borderRadius:'25px',
-            cursor:'grab',
-            zIndex:999999,
-            fontWeight:'bold',
-            color:'#fff',
-            userSelect:'none',
-            transition:'all 0.2s',
-            boxShadow:'0 6px 20px rgba(0,0,0,0.3)'
+            position:'fixed',left:posX,top:posY,
+            background:'#27ae60',padding:'10px 18px',
+            borderRadius:'25px',cursor:'grab',zIndex:999999,
+            fontWeight:'bold',color:'#fff',userSelect:'none',
+            transition:'all 0.2s',boxShadow:'0 6px 20px rgba(0,0,0,0.3)'
         });
         document.body.appendChild(b);
 
@@ -237,4 +218,24 @@ javascript:(function(){
             document.addEventListener(e.touches?'touchend':'mouseup',endDrag);
         }
         function handleDrag(e){
-            const t = e.touches ? e.touches
+            const t = e.touches ? e.touches[0] : e;
+            const dx=t.clientX-startX,dy=t.clientY-startY;
+            if(!isDragging&&Math.sqrt(dx*dx+dy*dy)>5) isDragging=true;
+            if(isDragging){b.style.left=`${initialX+dx}px`; b.style.top=`${initialY+dy}px`;}
+        }
+        function endDrag(e){
+            if(!isDragging){b.remove(); criarMenu();}
+            else{posX=b.style.left; posY=b.style.top; localStorage.setItem("posX",posX); localStorage.setItem("posY",posY);}
+            document.removeEventListener(e.changedTouches?'touchmove':'mousemove',handleDrag);
+            document.removeEventListener(e.changedTouches?'touchend':'mouseup',endDrag);
+        }
+    }
+
+    // ===== SCRIPT NOTIFICATIONS AUTOMÁTICAS =====
+    setTimeout(()=>sendToast({text:"🚀 Script executado com sucesso...",duration:2000,gravity:"bottom"}),500);
+    setTimeout(()=>sendToast({text:"⏳ Carregando...",duration:2000,gravity:"bottom"}),1500);
+    setTimeout(()=>sendToast({text:"✅ Script carregado com sucesso!\n💳 Créditos: Mano Rick",duration:3000,gravity:"bottom"}),3000);
+
+    // ===== INICIAR =====
+    criarBotaoFlutuante();
+})();
